@@ -17,23 +17,26 @@ export class SearchService {
   ) {}
 
   async searchAndSave(term: string) {
-    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=podcast`;
-    const response = await lastValueFrom(this.httpService.get(url));
-    const results = response.data.results;
+    // 1. البحث عن البودكاستات
+    const podcastUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=podcast`;
+    const podcastResponse = await lastValueFrom(
+      this.httpService.get(podcastUrl),
+    );
+    const podcastResults = podcastResponse.data.results;
 
-    const podcasts: Podcast[] = [];
-    const episodes: Episode[] = [];
+    const podcasts: any[] = [];
 
-    for (const item of results) {
+    for (const item of podcastResults) {
       if (!item.feedUrl) continue;
 
-      // حفظ أو إيجاد البودكاست
-      let podcast = await this.podcastRepo.findOne({ where: { itunesId: item.trackId } });
+      let podcast = await this.podcastRepo.findOne({
+        where: { itunesId: item.trackId },
+      });
 
       if (!podcast) {
         podcast = this.podcastRepo.create({
           itunesId: item.trackId,
-          name: item.trackName,
+          title: item.trackName,
           artist: item.artistName,
           image: item.artworkUrl600,
           feedUrl: item.feedUrl,
@@ -42,29 +45,45 @@ export class SearchService {
       }
 
       podcasts.push(podcast);
+    }
 
-      // جلب الإبسودات (10 حلقات فقط كمثال)
-      const epUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(item.trackName)}&media=podcast&entity=podcastEpisode`;
-      const epResponse = await lastValueFrom(this.httpService.get(epUrl));
-      const epResults = epResponse.data.results;
+    // 2. البحث عن حلقات البودكاست (باستخدام نفس المصطلح)
+    const episodesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=podcast&entity=podcastEpisode`;
+    const episodesResponse = await lastValueFrom(
+      this.httpService.get(episodesUrl),
+    );
+    const episodeResults = episodesResponse.data.results;
 
-      for (const ep of epResults.slice(0, 10)) {
-        const exists = await this.episodeRepo.findOne({ where: { itunesId: ep.trackId } });
-        if (!exists) {
-          const episode = this.episodeRepo.create({
-            itunesId: ep.trackId,
-            title: ep.trackName,
-            description: ep.description,
-            audioUrl: ep.episodeUrl || ep.previewUrl || '',
-            releaseDate: ep.releaseDate,
-            podcast,
-          });
-          const savedEp = await this.episodeRepo.save(episode);
-          episodes.push(savedEp);
-        }
+    const episodes: any[] = [];
+
+    for (const ep of episodeResults) {
+      // إذا أردت تحديد عدد معين من الحلقات (مثلاً 10)
+      if (episodes.length >= 10) break;
+
+      const exists = await this.episodeRepo.findOne({
+        where: { itunesId: ep.trackId },
+      });
+
+      if (!exists) {
+        // هنا لا نربط الحلقة بأي بودكاست (بدون علاقة)
+        const episode = this.episodeRepo.create({
+          itunesId: ep.trackId,
+          title: ep.trackName,
+          description: ep.shortDescription,
+          image: ep.artworkUrl600,
+          audioUrl: ep.episodeUrl || ep.previewUrl || '',
+          releaseDate: ep.releaseDate,
+          // لا نمرر podcast هنا - بدون علاقة
+        });
+        const savedEp = await this.episodeRepo.save(episode);
+        episodes.push(savedEp);
       }
     }
 
-    return { podcasts, episodes };
+    // 3. إرجاع النتائج في نفس الرد
+    return {
+      podcasts: podcasts,
+      episodes: episodes,
+    };
   }
 }

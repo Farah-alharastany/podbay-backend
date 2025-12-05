@@ -6,12 +6,11 @@ export class Podcast {
   @PrimaryGeneratedColumn()
   id: number;
 
-@Column({ type: 'bigint', nullable: true })
-itunesId: string;
-
+  @Column({ type: 'bigint', nullable: true })
+  itunesId: string;
 
   @Column()
-  name: string;
+  title: string;
 
   @Column()
   artist: string;

@@ -16,6 +16,9 @@ export class Episode {
   description: string;
 
   @Column()
+  image: string;
+
+  @Column()
   audioUrl: string;
 
   @Column()
