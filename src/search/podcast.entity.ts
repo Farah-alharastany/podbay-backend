@@ -19,7 +19,7 @@ export class Podcast {
   image: string;
 
   @Column()
-  feedUrl: string;
+  collectionViewUrl: string;
 
   @OneToMany(() => Episode, (episode) => episode.podcast, { cascade: true })
   episodes: Episode[];

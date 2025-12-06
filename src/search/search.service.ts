@@ -39,7 +39,7 @@ export class SearchService {
           title: item.trackName,
           artist: item.artistName,
           image: item.artworkUrl600,
-          feedUrl: item.feedUrl,
+          collectionViewUrl: item.collectionViewUrl,
         });
         podcast = await this.podcastRepo.save(podcast);
       }
@@ -57,26 +57,26 @@ export class SearchService {
     const episodes: any[] = [];
 
     for (const ep of episodeResults) {
-      // إذا أردت تحديد عدد معين من الحلقات (مثلاً 10)
-      if (episodes.length >= 10) break;
-
       const exists = await this.episodeRepo.findOne({
         where: { itunesId: ep.trackId },
       });
 
       if (!exists) {
-        // هنا لا نربط الحلقة بأي بودكاست (بدون علاقة)
         const episode = this.episodeRepo.create({
           itunesId: ep.trackId,
           title: ep.trackName,
+          collectionName: ep.collectionName,
           description: ep.shortDescription,
           image: ep.artworkUrl600,
           audioUrl: ep.episodeUrl || ep.previewUrl || '',
           releaseDate: ep.releaseDate,
-          // لا نمرر podcast هنا - بدون علاقة
         });
+
         const savedEp = await this.episodeRepo.save(episode);
         episodes.push(savedEp);
+      } else {
+        // ✅ أضيفي الحلقة الموجودة أيضًا إلى النتائج
+        episodes.push(exists);
       }
     }
 

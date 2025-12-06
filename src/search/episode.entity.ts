@@ -11,7 +11,9 @@ export class Episode {
 
   @Column()
   title: string;
-
+  @Column()
+  collectionName: string;
+  
   @Column('text', { nullable: true })
   description: string;
 
