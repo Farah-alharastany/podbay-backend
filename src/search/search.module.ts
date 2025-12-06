@@ -4,8 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SearchService } from './search.service';
 import { SearchController } from './search.controller';
 
-import { Podcast } from './podcast.entity';
-import { Episode } from './episode.entity';
+import { Podcast } from './entities/podcast.entity';
+import { Episode } from './entities/episode.entity';
 @Module({
   imports: [
     HttpModule,

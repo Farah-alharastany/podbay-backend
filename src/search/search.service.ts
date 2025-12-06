@@ -3,8 +3,8 @@ import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Podcast } from './podcast.entity';
-import { Episode } from './episode.entity';
+import { Podcast } from './entities/podcast.entity';
+import { Episode } from './entities/episode.entity';
 
 @Injectable()
 export class SearchService {
